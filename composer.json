@@ -13,7 +13,7 @@
         "pdo",
         "pagination"
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "require": {
         "ext-pdo": "*",
         "php": "^7.1"

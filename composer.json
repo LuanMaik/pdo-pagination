@@ -2,6 +2,7 @@
     "name": "luanmaik/pdo-paginator",
     "type": "library",
     "description": "This lib allow make easy pagination using PDO extension",
+    "license": "MIT",
     "authors": [
         {
             "name": "Luan Maik",
@@ -10,11 +11,11 @@
     ],
     "require": {
         "ext-pdo": "*",
-        "php": "7.3^"
+        "php": "^7.3"
     },
     "autoload": {
         "psr-4": {
-            "PDOPaginator\\": "src"
+            "PDOPaginator\\": "src/"
         }
     }
 }

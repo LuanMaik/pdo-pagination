@@ -9,6 +9,11 @@
             "email": "luanmaik1994@gmail.com"
         }
     ],
+    "keywords": [
+        "pdo",
+        "pagination"
+    ],
+    "minimum-stability": "stable",
     "require": {
         "ext-pdo": "*",
         "php": "^7.3"

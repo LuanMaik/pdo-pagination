@@ -5,6 +5,7 @@ namespace PDOPaginator;
 
 
 
+use InvalidArgumentException;
 use PDO;
 
 class PDOPaginator
@@ -53,8 +54,8 @@ class PDOPaginator
      */
     public function setPaginationCollectionClass(string $paginationCollectionClass): void
     {
-        if (!in_array(PdoPaginationInterface::class, class_implements($paginationCollectionClass))) {
-            throw new \InvalidArgumentException("The {$this->paginationCollectionClass} informed must implements ". PdoPaginationInterface::class);
+        if (!in_array(PDOPaginationCollectionInterface::class, class_implements($paginationCollectionClass))) {
+            throw new InvalidArgumentException("The {$this->paginationCollectionClass} informed must implements ". PDOPaginationCollectionInterface::class);
         }
 
         $this->paginationCollectionClass = $paginationCollectionClass;
@@ -77,9 +78,9 @@ class PDOPaginator
      * @param int $page
      * @param null $fetchMode
      * @param int $fetchArgument
-     * @return PdoPaginationInterface
+     * @return PDOPaginationCollectionInterface
      */
-    public function execute(int $perPage, int $page = 1, $fetchMode = null, $fetchArgument = PDO::FETCH_COLUMN): PdoPaginationInterface
+    public function execute(int $perPage, int $page = 1, $fetchMode = null, $fetchArgument = PDO::FETCH_COLUMN): PDOPaginationCollectionInterface
     {
         $registers = $this->executePagination($perPage, $page, $fetchMode, $fetchArgument);
         $total = $this->executeTotalPagination();

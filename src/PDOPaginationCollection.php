@@ -71,7 +71,7 @@ class PDOPaginationCollection extends \ArrayIterator implements PDOPaginationCol
      */
     public function getCurrentPage(): int
     {
-        $this->currentPage;
+        return $this->currentPage;
     }
 
     /**

@@ -35,7 +35,7 @@ class PDOPaginator
      * @param PDO $pdo
      * @param string $paginationCollectionClass
      */
-    public function __construct(PDO $pdo, string $paginationCollectionClass = PdoPaginationCollection::class)
+    public function __construct(PDO $pdo, string $paginationCollectionClass = PDOPaginationCollection::class)
     {
         $this->pdo = $pdo;
         $this->setPaginationCollectionClass($paginationCollectionClass);
@@ -46,7 +46,12 @@ class PDOPaginator
      */
     public function query(string $query): void
     {
-        $this->query = $query;
+        $limitPattern = '/([\s\S]*)LIMIT([\s\S])(?!=)/i';
+        if (preg_match($limitPattern, $query)) {
+            throw new InvalidArgumentException("The informed query must not have LIMIT operator, informed: {$query}");
+        }
+
+        $this->query = str_replace(';', '', $query);
     }
 
     /**
@@ -77,10 +82,10 @@ class PDOPaginator
      * @param int $perPage
      * @param int $page
      * @param null $fetchMode
-     * @param int $fetchArgument
+     * @param null $fetchArgument
      * @return PDOPaginationCollectionInterface
      */
-    public function execute(int $perPage, int $page = 1, $fetchMode = null, $fetchArgument = PDO::FETCH_COLUMN): PDOPaginationCollectionInterface
+    public function execute(int $perPage, int $page = 1, $fetchMode = null, $fetchArgument = null): PDOPaginationCollectionInterface
     {
         $registers = $this->executePagination($perPage, $page, $fetchMode, $fetchArgument);
         $total = $this->executeTotalPagination();
@@ -95,10 +100,10 @@ class PDOPaginator
      * @param int $perPage
      * @param int $page
      * @param null $fetchMode
-     * @param int $fetchArgument
+     * @param null $fetchArgument
      * @return array
      */
-    protected function executePagination(int $perPage, int $page = 1, $fetchMode = null, $fetchArgument = PDO::FETCH_COLUMN)
+    protected function executePagination(int $perPage, int $page = 1, $fetchMode = null, $fetchArgument = null)
     {
         $query = $this->buildQueryPagination();
         $stmt = $this->pdo->prepare($query);
@@ -108,7 +113,13 @@ class PDOPaginator
         $stmt->bindValue(':offset', $perPage * ($page - 1), PDO::PARAM_INT);
         $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll($fetchMode, $fetchArgument);
+
+        $fetchConfig = [$fetchMode];
+        if ($fetchMode !== null) {
+            $fetchConfig[] = $fetchArgument;
+        }
+
+        return $stmt->fetchAll(...$fetchConfig);
     }
 
     /**
@@ -136,11 +147,7 @@ class PDOPaginator
      */
     protected function buildQueryPagination(): string
     {
-        $query = str_replace(';', '', $this->query);
-
-        $pattern = '/LIMIT([\s\S]*?)/i';
-        $queryLimitless = preg_replace($pattern, '', $query);
-        return "{$queryLimitless} LIMIT :offset, :limit;";
+        return "{$this->query} LIMIT :offset, :limit;";
     }
 
 
@@ -155,7 +162,15 @@ class PDOPaginator
     protected function buildQueryTotalPagination(): string
     {
         $pattern = '/SELECT([\s\S]*?)FROM/i';
-        return preg_replace($pattern, 'SELECT COUNT(*) as total FROM', $this->query);
+        $totalQuery = preg_replace($pattern, 'SELECT COUNT(*) as total FROM', $this->query);
+
+        // if has GROUP BY
+        $groupByPattern = '/([\s\S]*)GROUP([\s\S])BY([\s\S]*)/i';
+        if (preg_match($groupByPattern, $totalQuery)) {
+            $totalQuery = "SELECT COUNT(*) as total FROM ({$totalQuery}) as temp";
+        }
+
+        return $totalQuery;
     }
 
 }

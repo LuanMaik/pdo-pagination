@@ -1,4 +1,5 @@
 # PDOPaginator
+`composer require luanmaik/pdo-paginator`
 
 This library will help you to create pagination of records easily, using PDO.
 

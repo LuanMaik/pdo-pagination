@@ -4,7 +4,8 @@
 namespace Test;
 
 
-use PDOPaginator\PDOPaginationCollection;
+use InvalidArgumentException;
+use PDO;
 use PDOPaginator\PDOPaginationCollectionInterface;
 use PDOPaginator\PDOPaginator;
 
@@ -48,6 +49,13 @@ class PDOPaginatorTest extends AbstractDatabaseTestCase
         $collection = $paginator->execute(10, 1);
 
         $this->assertInstanceOf(CustomPaginationCollection::class, $collection);
+    }
+
+    public function test_invalid_custom_collection_class_must_not_be_allowed()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new PDOPaginator($this->getDatabaseConnection(), InvalidCustomPaginationCollection::class);
     }
 
     public function test_paginate_must_works()
@@ -95,9 +103,53 @@ class PDOPaginatorTest extends AbstractDatabaseTestCase
 
     public function test_query_with_limit_must_not_be_allowed()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $paginator = new PDOPaginator($this->getDatabaseConnection());
         $paginator->query('SELECT * FROM user LIMIT 5');
+    }
+
+    /**
+     * Test if the limit identifier pattern is works correctly when using a field name called 'limit'
+     */
+    public function test_limit_identifier_pattern_not_conflict_with_possible_field_name()
+    {
+        $paginator = new PDOPaginator($this->getDatabaseConnection());
+        $paginator->query('SELECT * FROM creditcard WHERE limit > 1000');
+        $paginator->query('SELECT * FROM creditcard WHERE limit < 1000');
+        $paginator->query('SELECT * FROM creditcard WHERE limit = 1000');
+        $paginator->query('SELECT * FROM creditcard WHERE limit in(1000, 2000)');
+
+        $this->assertTrue(true);
+    }
+
+    public function test_collection_pagination_info()
+    {
+        $paginator = new PDOPaginator($this->getDatabaseConnection());
+        $paginator->query('SELECT * FROM user');
+        $collection = $paginator->execute(3, 1);
+
+        $info = $collection->getPaginationArray();
+        $this->assertArrayHasKey('total', $info);
+        $this->assertEquals(5, $info['total']);
+        $this->assertArrayHasKey('perPage', $info);
+        $this->assertEquals(3, $info['perPage']);
+        $this->assertArrayHasKey('currentPage', $info);
+        $this->assertEquals(1, $info['currentPage']);
+        $this->assertArrayHasKey('totalPages', $info);
+        $this->assertEquals(2, $info['totalPages']);
+
+        $this->assertCount(3, $collection->toArray());
+    }
+
+    public function test_fetch_mode_class_must_works()
+    {
+        $paginator = new PDOPaginator($this->getDatabaseConnection());
+        $paginator->query('SELECT * FROM user');
+        $collection = $paginator->execute(15, 1, PDO::FETCH_CLASS, User::class);
+
+        foreach ($collection as $user) {
+            $this->assertInstanceOf(User::class, $user);
+        }
     }
 }

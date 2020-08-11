@@ -46,7 +46,7 @@ class PDOPaginator
      */
     public function query(string $query): void
     {
-        $limitPattern = '/([\s\S]*)LIMIT([\s\S])(?!=)/i';
+        $limitPattern = '/([\s\S]*)LIMIT([\s\S])([0-9])/i';
         if (preg_match($limitPattern, $query)) {
             throw new InvalidArgumentException("The informed query must not have LIMIT operator, informed: {$query}");
         }

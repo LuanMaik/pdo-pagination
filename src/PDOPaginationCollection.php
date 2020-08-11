@@ -6,7 +6,7 @@ namespace PDOPaginator;
 
 use Exception;
 
-class PDOPaginationCollection extends \ArrayIterator implements PDOPaginationCollectionInterface
+class PDOPaginationCollection extends \ArrayObject implements PDOPaginationCollectionInterface
 {
     /**
      * @var int
@@ -101,6 +101,11 @@ class PDOPaginationCollection extends \ArrayIterator implements PDOPaginationCol
      */
     public function toArray(): array
     {
-        throw new Exception("It's not possible to know your data type. If you need use this, implements your own extending this class");
+        $array = [];
+        foreach ($this->getIterator() as $item) {
+            $array[] = (array) $item;
+        }
+
+        return $array;
     }
 }

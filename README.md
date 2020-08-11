@@ -1,8 +1,13 @@
 # PDOPaginator
-`composer require luanmaik/pdo-paginator`
 
 This library will help you to create pagination of records easily, using PDO.
 
+![php](https://img.shields.io/badge/php-%3E=7.1-greenlight)
+![coverage](https://img.shields.io/badge/coverage-100%25-green)
+![php](https://img.shields.io/github/issues/LuanMaik/pdo-pagination)
+
+## Install using Composer
+`composer require luanmaik/pdo-paginator`
 
 ## Common Workaround
 **Using SQL_CALC_FOUND_ROWS & FOUND_ROWS()**
